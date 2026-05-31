@@ -1,11 +1,12 @@
 package betterbundle.gui;
 
+import net.minecraft.client.gui.GuiGraphics;
 import net.sourceforge.pinyin4j.PinyinHelper;
 import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
 import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractRecipeBookScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.player.Inventory;
@@ -221,7 +222,7 @@ public final class BundlePanelRenderer {
 
     // --- render ---
 
-    public static void render(GuiGraphicsExtractor graphics, int leftPos, int topPos, int imageHeight, int mouseX, int mouseY) {
+    public static void render(GuiGraphics graphics, int leftPos, int topPos, int imageHeight, int mouseX, int mouseY) {
         if (!isEffectivelyVisible()) return;
         List<BundleSlotEntry> bundles = getBundles();
         if (bundles.isEmpty()) { scrollOffset = 0; return; }
@@ -276,7 +277,7 @@ public final class BundlePanelRenderer {
             int bg = selected ? 0xC0101010 : (hovered ? 0xFF555555 : 0xFF2D2D2D);
             graphics.fill(bx, by, bx + bw, by + CAT_BAR_WIDTH, bg);
             int iconOff = (CAT_BAR_WIDTH - 16) / 2;
-            graphics.item(cats[i].getIcon(), bx + iconOff, by + iconOff);
+            graphics.renderItem(cats[i].getIcon(), bx + iconOff, by + iconOff);
         }
 
         // Scroll bar
@@ -308,8 +309,8 @@ public final class BundlePanelRenderer {
                 graphics.fill(sx + 1, sy + 1, sx + SLOT_SIZE - 1, sy + SLOT_SIZE - 1, 0xFFC6C6C6);
 
                 FlatItem fi = items.get(flatIndex);
-                graphics.item(fi.stack(), sx + 1, sy + 1);
-                graphics.itemDecorations(client.font, fi.stack(), sx + 1, sy + 1);
+                graphics.renderItem(fi.stack(), sx + 1, sy + 1);
+                graphics.renderItemDecorations(client.font, fi.stack(), sx + 1, sy + 1);
 
                 if (mouseX >= sx && mouseX < sx + SLOT_SIZE && mouseY >= sy && mouseY < sy + SLOT_SIZE) {
                     hoveredFlatIndex = flatIndex;
@@ -339,13 +340,14 @@ public final class BundlePanelRenderer {
             graphics.fill(sbx, sby, sbx + sbw, sby + SEARCH_BAR_HEIGHT, bg);
             if (active) graphics.fill(sbx + 1, sby + 1, sbx + sbw - 1, sby + SEARCH_BAR_HEIGHT - 1, 0xFF3D3D3D);
             int textY = sby + (SEARCH_BAR_HEIGHT - font.lineHeight) / 2;
+            int textX = sbx + 3;
             if (isAllMode && searchQuery.isEmpty() && !searchFocused) {
-                graphics.text(font, "Search...", sbx + 3, textY, 0xFF666666, false);
-            } else if (isAllMode && !searchQuery.isEmpty()) {
-                graphics.text(font, searchQuery, sbx + 3, textY, 0xFFFFFFFF, false);
+                graphics.drawString(font, "Search...", textX, textY, 0xFF666666, false);
+            } else if (isAllMode) {
+                graphics.drawString(font, searchQuery, textX, textY, 0xFFFFFFFF, false);
                 searchCursorTick = (searchCursorTick + 1) % 40;
                 if (searchFocused && searchCursorTick < 20) {
-                    int cursorX = sbx + 3 + font.width(searchQuery);
+                    int cursorX = textX + font.width(searchQuery);
                     graphics.fill(cursorX, textY, cursorX + 1, textY + font.lineHeight, 0xFFFFFFFF);
                 }
             }
@@ -354,7 +356,7 @@ public final class BundlePanelRenderer {
         // Category title (on top of search bar)
         if (currentCategory != BundleCategory.ALL) {
             String label = currentCategory.getDisplayName();
-            graphics.text(font, label, panelX + 16 + 3, panelY + 2, 0xFFCCCCCC, false);
+            graphics.drawCenteredString(font, label, panelX + 16 + 3, panelY + 2, 0xFFCCCCCC);
         }
 
         // Bundle count display (bottom-right of grid)
@@ -364,7 +366,7 @@ public final class BundlePanelRenderer {
         int countX = gridX + COLUMNS * (SLOT_SIZE + SLOT_SPACING) - SLOT_SPACING - textW;
         int countY = gridY + VISIBLE_ROWS * SLOT_SIZE + (VISIBLE_ROWS - 1) * SLOT_SPACING + 7;
         graphics.fill(countX - 2, countY, countX + textW + 2, countY + font.lineHeight, 0xC0101010);
-        graphics.text(font, countText, countX, countY, 0xFFAAAAAA, false);
+        graphics.drawCenteredString(font, countText, countX, countY, 0xFFAAAAAA);
 
     }
 
@@ -376,7 +378,7 @@ public final class BundlePanelRenderer {
             BundleContents c = entry.contents();
             if (c != null && !c.isEmpty()) {
                 totalItems += c.itemCopyStream().mapToInt(ItemStack::getCount).sum();
-                totalWeight = totalWeight.add(c.weight().result().orElse(Fraction.ZERO));
+                totalWeight = totalWeight.add(c.weight());
             }
         }
         // remaining weight → how many more "standard" items (weight 1/64) would fit

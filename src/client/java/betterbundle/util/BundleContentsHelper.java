@@ -32,7 +32,7 @@ public final class BundleContentsHelper {
         BundleContents contents = getContents(bundleStack);
         Fraction currentWeight;
         if (contents != null) {
-            currentWeight = contents.weight().result().orElse(Fraction.ZERO);
+            currentWeight = contents.weight();
         } else {
             currentWeight = Fraction.ZERO; // empty/unused bundle
         }

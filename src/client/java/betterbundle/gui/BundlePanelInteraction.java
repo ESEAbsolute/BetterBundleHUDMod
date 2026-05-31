@@ -7,7 +7,7 @@ import net.minecraft.network.HashedStack;
 import net.minecraft.network.protocol.game.ServerboundContainerClickPacket;
 import net.minecraft.network.protocol.game.ServerboundSelectBundleItemPacket;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerInput;
+import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import org.lwjgl.glfw.GLFW;
@@ -119,7 +119,7 @@ public final class BundlePanelInteraction {
         if (hoveredSlot == null || !hoveredSlot.hasItem()) return false;
 
         Minecraft client = Minecraft.getInstance();
-        if (client.player == null || client.getWindow() == null) return false;
+        if (client.player == null) return false;
 
         long window = client.getWindow().handle();
         if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_SPACE) != GLFW.GLFW_PRESS) return false;
@@ -152,8 +152,8 @@ public final class BundlePanelInteraction {
 
     private static ServerboundContainerClickPacket makeClickPacket(int containerId, int slot, byte button) {
         return new ServerboundContainerClickPacket(
-                containerId, -1, (short) slot, button,
-                ContainerInput.PICKUP, new Int2ObjectOpenHashMap<>(), HashedStack.EMPTY);
+            containerId, -1, (short) slot, button,
+            ClickType.PICKUP, new Int2ObjectOpenHashMap<>(), HashedStack.EMPTY);
     }
 
     private static int findEmptyPlayerSlot(Player player) {
@@ -233,7 +233,6 @@ public final class BundlePanelInteraction {
         int pTop = gridY(topPos);
         int pH = BundlePanelRenderer.VISIBLE_ROWS * BundlePanelRenderer.SLOT_SIZE
                 + (BundlePanelRenderer.VISIBLE_ROWS - 1) * BundlePanelRenderer.SLOT_SPACING;
-        if (mouseY < pTop || mouseY > pTop + pH) return false;
-        return true;
+        return !(mouseY < pTop) && !(mouseY > pTop + pH);
     }
 }
