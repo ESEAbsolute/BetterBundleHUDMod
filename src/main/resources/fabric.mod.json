@@ -21,8 +21,16 @@
         }
     ],
     "depends": {
-        "fabricloader": ">=${loader_version}",
+        "fabricloader": "*",
         "fabric-api": "*",
-        "minecraft": "${minecraft_version}"
+        "minecraft": "${minecraft_version_dependency}"
+    },
+    "custom": {
+        "modmenu": {
+            "badges": [
+                "client"
+            ],
+            "update_checker": false
+        }
     }
 }
